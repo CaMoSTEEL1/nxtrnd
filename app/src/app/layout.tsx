@@ -19,7 +19,7 @@ const dmMono = DM_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "UGC Studio — AI Influencer Content Platform",
+  title: "NXTRND — AI Influencer Content Platform",
   description: "Generate authentic short-form video content with AI influencers at scale.",
 };
 

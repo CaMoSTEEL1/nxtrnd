@@ -49,16 +49,16 @@ export function Sidebar() {
       >
         <Link href="/" className="block">
           <span
-            className="text-[15px] font-extrabold tracking-tight"
+            className="text-[17px] font-extrabold tracking-tighter"
             style={{ color: "var(--foreground)" }}
           >
-            UGC
+            NXT
           </span>
           <span
-            className="text-[15px] font-medium tracking-tight"
-            style={{ color: "var(--foreground-muted)" }}
+            className="text-[17px] font-extrabold tracking-tighter"
+            style={{ color: "var(--primary)" }}
           >
-            {" "}Studio
+            RND
           </span>
         </Link>
         <p className="mt-0.5 text-[11px]" style={{ color: "var(--foreground-muted)", opacity: 0.6 }}>

@@ -1,8 +1,251 @@
+"use client";
+
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Sparkles, Video, Download, Share2 } from "lucide-react";
 import Link from "next/link";
 
+// ── Mock data ─────────────────────────────────────────────────────────────────
+const MOCK_INFLUENCERS = [
+  { id: "ava", name: "Ava Chen (@ava.moves)" },
+  { id: "marcus", name: "Marcus Reid (@marcuslifts)" },
+  { id: "priya", name: "Priya Nair (@runwithpriya)" },
+  { id: "jordan", name: "Jordan Ellis (@jordo.daily)" },
+];
+
+const MOCK_SCRIPTS = [
+  { id: "pain", name: "Pain-point — \"If your leggings are distracting you…\"" },
+  { id: "lifestyle", name: "Lifestyle — \"This is what 6am looks like…\"" },
+  { id: "social", name: "Social proof — \"I've tried 11 leggings…\"" },
+];
+
+const MOCK_PRODUCTS = [
+  { id: "align", name: "Lululemon Align Pant" },
+  { id: "define", name: "Lululemon Define Jacket" },
+  { id: "swiftly", name: "Lululemon Swiftly Tech Racerback" },
+  { id: "abc", name: "Lululemon ABC Pant" },
+];
+
+const CAPTION_STYLES = ["Bold", "Minimal", "None"] as const;
+type CaptionStyle = typeof CAPTION_STYLES[number];
+type Status = "idle" | "rendering" | "success";
+
+// ── Render progress steps ─────────────────────────────────────────────────────
+const RENDER_STEPS = [
+  "Generating persona footage with DALL-E 3…",
+  "Compositing product shots…",
+  "Syncing voiceover with scene timing…",
+  "Burning captions…",
+  "Encoding H.264 at 9:16…",
+  "Finalising 30-second reel…",
+];
+
 export default function NewVideoPage() {
+  const [vInfluencer, setVInfluencer] = useState("");
+  const [vScript, setVScript] = useState("");
+  const [vProduct, setVProduct] = useState("");
+  const [captionStyle, setCaptionStyle] = useState<CaptionStyle>("Bold");
+  const [status, setStatus] = useState<Status>("idle");
+  const [renderStep, setRenderStep] = useState(0);
+  const [error, setError] = useState("");
+
+  const hasInfluencers = MOCK_INFLUENCERS.length > 0;
+  const hasScripts = MOCK_SCRIPTS.length > 0;
+  const hasProducts = MOCK_PRODUCTS.length > 0;
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+
+    if (!vInfluencer) { setError("Please select an influencer persona."); return; }
+    if (!vScript) { setError("Please select a script."); return; }
+    if (!vProduct) { setError("Please select a product."); return; }
+
+    setStatus("rendering");
+    setRenderStep(0);
+
+    // Step through render progress steps
+    RENDER_STEPS.forEach((_, i) => {
+      setTimeout(() => {
+        setRenderStep(i);
+        if (i === RENDER_STEPS.length - 1) {
+          setTimeout(() => setStatus("success"), 800);
+        }
+      }, i * 300);
+    });
+  }
+
+  const chosenInfluencer = MOCK_INFLUENCERS.find((x) => x.id === vInfluencer);
+  const chosenScript = MOCK_SCRIPTS.find((x) => x.id === vScript);
+  const chosenProduct = MOCK_PRODUCTS.find((x) => x.id === vProduct);
+
+  // ── Success state ──────────────────────────────────────────────────────────
+  if (status === "success") {
+    return (
+      <div className="px-10 py-10 max-w-xl">
+        <p className="label-section mb-3">Step 4 of 4 — Complete</p>
+        <div className="flex items-center gap-2 mb-6">
+          <CheckCircle2 className="h-6 w-6" style={{ color: "var(--primary)" }} />
+          <h1 className="text-3xl font-extrabold tracking-tight" style={{ color: "var(--foreground)" }}>
+            Video rendered!
+          </h1>
+        </div>
+
+        {/* Video preview placeholder */}
+        <div
+          className="rounded-xl overflow-hidden mb-6 relative"
+          style={{ background: "var(--background-card)", border: "1.5px solid var(--primary)" }}
+        >
+          {/* 9:16 aspect ratio container */}
+          <div
+            className="mx-auto flex items-center justify-center"
+            style={{ width: "180px", aspectRatio: "9/16", background: "linear-gradient(135deg, var(--primary-subtle), var(--background-card))", borderRadius: "8px", margin: "24px auto" }}
+          >
+            <div className="text-center">
+              <Video className="h-10 w-10 mx-auto mb-2" style={{ color: "var(--primary)" }} />
+              <p className="text-[11px] font-semibold" style={{ color: "var(--primary)" }}>Preview</p>
+              <p className="text-[10px]" style={{ color: "var(--foreground-muted)" }}>0:30 · 9:16 · H.264</p>
+            </div>
+          </div>
+
+          {/* Meta row */}
+          <div
+            className="px-5 py-3 flex items-center justify-between"
+            style={{ borderTop: "1px solid var(--border)" }}
+          >
+            <div>
+              <p className="text-[13px] font-semibold" style={{ color: "var(--foreground)" }}>
+                {chosenProduct?.name ?? "Lululemon product"} — {chosenScript?.name.split(" — ")[0]} reel
+              </p>
+              <p className="text-[11px] mt-0.5" style={{ color: "var(--foreground-muted)" }}>
+                ft. {chosenInfluencer?.name} · Captions: {captionStyle}
+              </p>
+            </div>
+            <span
+              className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+              style={{ background: "var(--primary-subtle)", color: "var(--primary)" }}
+            >
+              Ready
+            </span>
+          </div>
+        </div>
+
+        {/* Action buttons */}
+        <div className="flex items-center gap-3 mb-6">
+          <Button size="lg">
+            <Download className="h-4 w-4" />
+            Download MP4
+          </Button>
+          <Button variant="secondary" size="lg">
+            <Share2 className="h-4 w-4" />
+            Share link
+          </Button>
+        </div>
+
+        {/* Campaign complete message */}
+        <div
+          className="rounded-xl p-5 mb-4"
+          style={{ background: "var(--primary-subtle)", border: "1px solid var(--border)" }}
+        >
+          <p className="text-[13px] font-semibold mb-1" style={{ color: "var(--foreground)" }}>
+            Campaign complete
+          </p>
+          <p className="text-[12px] mb-3" style={{ color: "var(--foreground-muted)" }}>
+            Your first Lululemon AI influencer reel is ready to publish. Start a new campaign or tweak your persona and re-render.
+          </p>
+          <div className="flex items-center gap-3">
+            <Link href="/">
+              <Button variant="outline" size="lg">
+                Back to dashboard
+              </Button>
+            </Link>
+            <button
+              onClick={() => { setStatus("idle"); setVInfluencer(""); setVScript(""); setVProduct(""); }}
+              className="text-[12px] transition-opacity hover:opacity-60"
+              style={{ color: "var(--foreground-muted)" }}
+            >
+              Render another →
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Rendering progress state ───────────────────────────────────────────────
+  if (status === "rendering") {
+    const progress = Math.round(((renderStep + 1) / RENDER_STEPS.length) * 100);
+    return (
+      <div className="px-10 py-10 max-w-xl">
+        <p className="label-section mb-3">Step 4 of 4</p>
+        <h1 className="text-3xl font-extrabold tracking-tight mb-2" style={{ color: "var(--foreground)" }}>
+          Rendering your video…
+        </h1>
+        <p className="text-[14px] mb-8" style={{ color: "var(--foreground-muted)" }}>
+          This typically takes under 2 minutes. Don&apos;t close this tab.
+        </p>
+
+        <div
+          className="rounded-xl p-6"
+          style={{ background: "var(--background-card)", border: "1px solid var(--border)" }}
+        >
+          {/* Progress bar */}
+          <div
+            className="h-2 rounded-full mb-5 overflow-hidden"
+            style={{ background: "var(--border)" }}
+          >
+            <div
+              className="h-full rounded-full transition-all duration-500"
+              style={{ width: `${progress}%`, background: "var(--primary)" }}
+            />
+          </div>
+
+          <p className="text-[14px] font-semibold mb-4" style={{ color: "var(--foreground)" }}>
+            {progress}% complete
+          </p>
+
+          {/* Steps list */}
+          <div className="space-y-2.5">
+            {RENDER_STEPS.map((step, i) => {
+              const done = i < renderStep;
+              const active = i === renderStep;
+              return (
+                <div key={i} className="flex items-center gap-2.5">
+                  <div
+                    className="h-4 w-4 rounded-full flex-shrink-0 flex items-center justify-center"
+                    style={{
+                      background: done ? "var(--primary)" : active ? "var(--primary-subtle)" : "var(--border)",
+                      border: active ? "2px solid var(--primary)" : "none",
+                    }}
+                  >
+                    {done && <CheckCircle2 className="h-3 w-3 text-white" />}
+                    {active && (
+                      <Sparkles
+                        className="h-2.5 w-2.5 animate-pulse"
+                        style={{ color: "var(--primary)" }}
+                      />
+                    )}
+                  </div>
+                  <p
+                    className="text-[12px]"
+                    style={{
+                      color: done ? "var(--foreground-muted)" : active ? "var(--foreground)" : "var(--foreground-muted)",
+                      opacity: done || active ? 1 : 0.4,
+                      fontWeight: active ? 600 : 400,
+                    }}
+                  >
+                    {step}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Form state ─────────────────────────────────────────────────────────────
   return (
     <div className="px-10 py-10 max-w-xl">
 
@@ -26,66 +269,138 @@ export default function NewVideoPage() {
         Compose influencer video + product shots + voiceover + captions into a 9:16, H.264, 30-second reel. Typical generation time: under 2 minutes.
       </p>
 
-      <form className="mt-10 space-y-6">
+      <form className="mt-10 space-y-6" onSubmit={handleSubmit}>
+
+        {/* Influencer */}
         <div className="space-y-1.5">
           <label htmlFor="v-influencer" className="block text-[13px] font-semibold" style={{ color: "var(--foreground)" }}>
             Influencer persona
           </label>
-          <select
-            id="v-influencer"
-            className="w-full rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-shadow focus:ring-2 focus:ring-[var(--primary-ring)]"
-            style={{ background: "var(--background-card)", borderColor: "var(--border)", color: "var(--foreground)" }}
-          >
-            <option value="">Select influencer…</option>
-          </select>
+          {hasInfluencers ? (
+            <select
+              id="v-influencer"
+              value={vInfluencer}
+              onChange={(e) => setVInfluencer(e.target.value)}
+              className="w-full rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-shadow focus:ring-2 focus:ring-[var(--primary-ring)]"
+              style={{ background: "var(--background-card)", borderColor: "var(--border)", color: "var(--foreground)" }}
+            >
+              <option value="">Select influencer…</option>
+              {MOCK_INFLUENCERS.map((inf) => (
+                <option key={inf.id} value={inf.id}>{inf.name}</option>
+              ))}
+            </select>
+          ) : (
+            <div
+              className="rounded-lg border px-3.5 py-3 text-[13px]"
+              style={{ background: "var(--background-card)", borderColor: "var(--border)", color: "var(--foreground-muted)" }}
+            >
+              No personas yet.{" "}
+              <Link href="/influencers/new" className="underline font-semibold" style={{ color: "var(--primary)" }}>
+                Create one first →
+              </Link>
+            </div>
+          )}
         </div>
 
+        {/* Script */}
         <div className="space-y-1.5">
           <label htmlFor="v-script" className="block text-[13px] font-semibold" style={{ color: "var(--foreground)" }}>
             Script
           </label>
-          <select
-            id="v-script"
-            className="w-full rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-shadow focus:ring-2 focus:ring-[var(--primary-ring)]"
-            style={{ background: "var(--background-card)", borderColor: "var(--border)", color: "var(--foreground)" }}
-          >
-            <option value="">Select script…</option>
-          </select>
+          {hasScripts ? (
+            <select
+              id="v-script"
+              value={vScript}
+              onChange={(e) => setVScript(e.target.value)}
+              className="w-full rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-shadow focus:ring-2 focus:ring-[var(--primary-ring)]"
+              style={{ background: "var(--background-card)", borderColor: "var(--border)", color: "var(--foreground)" }}
+            >
+              <option value="">Select script…</option>
+              {MOCK_SCRIPTS.map((s) => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </select>
+          ) : (
+            <div
+              className="rounded-lg border px-3.5 py-3 text-[13px]"
+              style={{ background: "var(--background-card)", borderColor: "var(--border)", color: "var(--foreground-muted)" }}
+            >
+              No scripts yet.{" "}
+              <Link href="/scripts/new" className="underline font-semibold" style={{ color: "var(--primary)" }}>
+                Generate scripts first →
+              </Link>
+            </div>
+          )}
         </div>
 
+        {/* Product */}
         <div className="space-y-1.5">
           <label htmlFor="v-product" className="block text-[13px] font-semibold" style={{ color: "var(--foreground)" }}>
             Product
           </label>
-          <select
-            id="v-product"
-            className="w-full rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-shadow focus:ring-2 focus:ring-[var(--primary-ring)]"
-            style={{ background: "var(--background-card)", borderColor: "var(--border)", color: "var(--foreground)" }}
-          >
-            <option value="">Select product…</option>
-          </select>
+          {hasProducts ? (
+            <select
+              id="v-product"
+              value={vProduct}
+              onChange={(e) => setVProduct(e.target.value)}
+              className="w-full rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-shadow focus:ring-2 focus:ring-[var(--primary-ring)]"
+              style={{ background: "var(--background-card)", borderColor: "var(--border)", color: "var(--foreground)" }}
+            >
+              <option value="">Select product…</option>
+              {MOCK_PRODUCTS.map((prod) => (
+                <option key={prod.id} value={prod.id}>{prod.name}</option>
+              ))}
+            </select>
+          ) : (
+            <div
+              className="rounded-lg border px-3.5 py-3 text-[13px]"
+              style={{ background: "var(--background-card)", borderColor: "var(--border)", color: "var(--foreground-muted)" }}
+            >
+              No products yet.{" "}
+              <Link href="/products/new" className="underline font-semibold" style={{ color: "var(--primary)" }}>
+                Upload one first →
+              </Link>
+            </div>
+          )}
         </div>
 
+        {/* Caption style — with working selection state */}
         <div className="space-y-1.5">
           <label className="block text-[13px] font-semibold" style={{ color: "var(--foreground)" }}>
             Caption style
           </label>
           <div className="grid grid-cols-3 gap-2">
-            {["Bold", "Minimal", "None"].map((style) => (
-              <label
-                key={style}
-                className="flex items-center justify-center rounded-lg border px-3 py-2.5 text-[13px] font-medium cursor-pointer transition-colors hover:border-[var(--primary)] hover:bg-[var(--primary-subtle)]"
-                style={{ borderColor: "var(--border)", color: "var(--foreground-muted)" }}
-              >
-                <input type="radio" name="caption-style" value={style.toLowerCase()} className="hidden" />
-                {style}
-              </label>
-            ))}
+            {CAPTION_STYLES.map((style) => {
+              const isActive = captionStyle === style;
+              return (
+                <button
+                  key={style}
+                  type="button"
+                  onClick={() => setCaptionStyle(style)}
+                  className="flex items-center justify-center rounded-lg border px-3 py-2.5 text-[13px] font-medium cursor-pointer transition-colors"
+                  style={{
+                    borderColor: isActive ? "var(--primary)" : "var(--border)",
+                    background: isActive ? "var(--primary-subtle)" : "var(--background-card)",
+                    color: isActive ? "var(--primary)" : "var(--foreground-muted)",
+                    fontWeight: isActive ? 600 : 500,
+                  }}
+                >
+                  {style}
+                </button>
+              );
+            })}
           </div>
         </div>
 
+        {error && (
+          <p className="text-[13px] font-medium" style={{ color: "var(--destructive)" }}>
+            {error}
+          </p>
+        )}
+
         <div className="pt-2 flex items-center gap-3">
           <Button type="submit" size="lg">
+            <Video className="h-4 w-4" />
             Render video
           </Button>
           <Link href="/videos">

@@ -60,7 +60,7 @@ export default function DashboardPage() {
       {/* ── Header ───────────────────────────────────────────── */}
       <div className="flex items-end justify-between gap-8 mb-14">
         <div>
-          <p className="label-section mb-3">UGC Studio</p>
+          <p className="label-section mb-3">NXTRND</p>
           <h1
             className="text-4xl font-extrabold tracking-tight leading-[1.1]"
             style={{ color: "var(--foreground)" }}
@@ -72,10 +72,10 @@ export default function DashboardPage() {
             Claude writes the scripts. DALL-E builds the persona. You publish.
           </p>
         </div>
-        <Link href="/videos/new" className="shrink-0">
+        <Link href="/influencers/new" className="shrink-0">
           <Button size="lg">
             <Video className="h-4 w-4" />
-            New video
+            Start campaign
           </Button>
         </Link>
       </div>
