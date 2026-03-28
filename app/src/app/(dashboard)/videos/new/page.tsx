@@ -53,7 +53,7 @@ export default function NewVideoPage() {
   const hasScripts = MOCK_SCRIPTS.length > 0;
   const hasProducts = MOCK_PRODUCTS.length > 0;
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
 
@@ -64,15 +64,28 @@ export default function NewVideoPage() {
     setStatus("rendering");
     setRenderStep(0);
 
-    // Step through render progress steps
-    RENDER_STEPS.forEach((_, i) => {
-      setTimeout(() => {
+    try {
+      // 1. Production-ready API integration (calls the backend stub)
+      const res = await fetch("/api/videos/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ influencerId: vInfluencer, scriptId: vScript, productId: vProduct }),
+      });
+
+      if (!res.ok) throw new Error("Failed to start generation job");
+
+      // 2. Simulate polling progress for the UI
+      for (let i = 0; i < RENDER_STEPS.length; i++) {
         setRenderStep(i);
-        if (i === RENDER_STEPS.length - 1) {
-          setTimeout(() => setStatus("success"), 800);
-        }
-      }, i * 300);
-    });
+        // Simulate arbitrary processing time for each step
+        await new Promise((resolve) => setTimeout(resolve, 800 + Math.random() * 500));
+      }
+
+      setStatus("success");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An unknown error occurred");
+      setStatus("idle");
+    }
   }
 
   const chosenInfluencer = MOCK_INFLUENCERS.find((x) => x.id === vInfluencer);
@@ -98,13 +111,61 @@ export default function NewVideoPage() {
         >
           {/* 9:16 aspect ratio container */}
           <div
-            className="mx-auto flex items-center justify-center"
-            style={{ width: "180px", aspectRatio: "9/16", background: "linear-gradient(135deg, var(--primary-subtle), var(--background-card))", borderRadius: "8px", margin: "24px auto" }}
+            className="mx-auto overflow-hidden relative"
+            style={{
+              width: "200px",
+              aspectRatio: "9/16",
+              borderRadius: "10px",
+              margin: "24px auto",
+              background: "var(--background)",
+              border: "1px solid var(--border)",
+            }}
           >
-            <div className="text-center">
-              <Video className="h-10 w-10 mx-auto mb-2" style={{ color: "var(--primary)" }} />
-              <p className="text-[11px] font-semibold" style={{ color: "var(--primary)" }}>Preview</p>
-              <p className="text-[10px]" style={{ color: "var(--foreground-muted)" }}>0:30 · 9:16 · H.264</p>
+            {/* Simulated reel frame — clean editorial style */}
+            <div className="absolute inset-0 flex flex-col">
+              {/* Image area — neutral placeholder with subtle texture */}
+              <div
+                className="flex-1 flex items-center justify-center relative"
+                style={{ background: "var(--primary-subtle)" }}
+              >
+                {/* Avatar initial */}
+                <div
+                  className="h-16 w-16 rounded-full flex items-center justify-center text-2xl font-bold"
+                  style={{ background: "var(--background-card)", color: "var(--primary)", border: "1px solid var(--border)" }}
+                >
+                  {chosenInfluencer?.name.charAt(0) ?? "A"}
+                </div>
+                {/* Play button — minimal */}
+                <div
+                  className="absolute inset-0 flex items-center justify-center"
+                  style={{ background: "rgba(0,0,0,0.04)" }}
+                >
+                  <div
+                    className="h-10 w-10 rounded-full flex items-center justify-center"
+                    style={{ background: "var(--foreground)", opacity: 0.85 }}
+                  >
+                    <Video className="h-4 w-4" style={{ color: "var(--background)" }} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Caption strip */}
+              <div
+                className="px-3 py-2.5 flex-shrink-0"
+                style={{ background: "var(--background-card)", borderTop: "1px solid var(--border)" }}
+              >
+                <div
+                  className="h-1.5 rounded-full w-4/5 mb-1.5"
+                  style={{ background: "var(--foreground)", opacity: 0.12 }}
+                />
+                <div
+                  className="h-1.5 rounded-full w-3/5"
+                  style={{ background: "var(--foreground)", opacity: 0.07 }}
+                />
+                <p className="mt-2 text-[8px] font-semibold uppercase tracking-widest" style={{ color: "var(--foreground-muted)" }}>
+                  0:30 · 9:16
+                </p>
+              </div>
             </div>
           </div>
 
@@ -161,7 +222,7 @@ export default function NewVideoPage() {
             </Link>
             <button
               onClick={() => { setStatus("idle"); setVInfluencer(""); setVScript(""); setVProduct(""); }}
-              className="text-[12px] transition-opacity hover:opacity-60"
+              className="text-[12px] transition-colors hover:text-[var(--foreground)]"
               style={{ color: "var(--foreground-muted)" }}
             >
               Render another →
@@ -212,16 +273,16 @@ export default function NewVideoPage() {
               return (
                 <div key={i} className="flex items-center gap-2.5">
                   <div
-                    className="h-4 w-4 rounded-full flex-shrink-0 flex items-center justify-center"
+                    className="h-5 w-5 rounded-full flex-shrink-0 flex items-center justify-center"
                     style={{
-                      background: done ? "var(--primary)" : active ? "var(--primary-subtle)" : "var(--border)",
-                      border: active ? "2px solid var(--primary)" : "none",
+                      background: done ? "var(--primary)" : active ? "var(--primary-subtle)" : "transparent",
+                      border: done ? "none" : `2px solid ${active ? "var(--primary)" : "var(--border)"}`,
                     }}
                   >
-                    {done && <CheckCircle2 className="h-3 w-3 text-white" />}
+                    {done && <CheckCircle2 className="h-3.5 w-3.5 text-white" />}
                     {active && (
                       <Sparkles
-                        className="h-2.5 w-2.5 animate-pulse"
+                        className="h-3 w-3 animate-pulse"
                         style={{ color: "var(--primary)" }}
                       />
                     )}
@@ -251,7 +312,7 @@ export default function NewVideoPage() {
 
       <Link
         href="/videos"
-        className="inline-flex items-center gap-1.5 text-[13px] font-medium mb-8 transition-opacity hover:opacity-60"
+        className="inline-flex items-center gap-1.5 text-[13px] font-medium mb-8 transition-colors hover:text-[var(--foreground)]"
         style={{ color: "var(--foreground-muted)" }}
       >
         <ArrowLeft className="h-3.5 w-3.5" />

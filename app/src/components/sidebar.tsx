@@ -61,7 +61,7 @@ export function Sidebar() {
             RND
           </span>
         </Link>
-        <p className="mt-0.5 text-[11px]" style={{ color: "var(--foreground-muted)", opacity: 0.6 }}>
+        <p className="mt-0.5 text-[11px]" style={{ color: "var(--foreground-muted)" }}>
           AI influencer content
         </p>
       </div>

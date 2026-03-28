@@ -12,3 +12,6 @@ app/.next/
 app/node_modules/
 app/.env*
 !app/.env.example
+
+# Nexlayer (contains secrets)
+nexlayer.yaml

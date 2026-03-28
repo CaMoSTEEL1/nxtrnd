@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, CheckCircle2, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, ChevronDown, ChevronUp } from "lucide-react";
 import Link from "next/link";
 
 // ── Mock data — simulates personas + products already created ─────────────────
@@ -200,7 +200,7 @@ export default function NewScriptPage() {
 
         <button
           onClick={() => setStatus("idle")}
-          className="text-[12px] transition-opacity hover:opacity-60"
+          className="text-[12px] transition-colors hover:text-[var(--foreground)]"
           style={{ color: "var(--foreground-muted)" }}
         >
           ← Generate with different settings
@@ -215,7 +215,7 @@ export default function NewScriptPage() {
 
       <Link
         href="/scripts"
-        className="inline-flex items-center gap-1.5 text-[13px] font-medium mb-8 transition-opacity hover:opacity-60"
+        className="inline-flex items-center gap-1.5 text-[13px] font-medium mb-8 transition-colors hover:text-[var(--foreground)]"
         style={{ color: "var(--foreground-muted)" }}
       >
         <ArrowLeft className="h-3.5 w-3.5" />
@@ -236,25 +236,39 @@ export default function NewScriptPage() {
       {/* Loading state */}
       {status === "loading" && (
         <div
-          className="mt-8 rounded-xl p-8 text-center"
+          className="mt-8 rounded-xl p-8"
           style={{ background: "var(--background-card)", border: "1px solid var(--border)" }}
         >
-          <div className="flex justify-center mb-4">
-            <Sparkles className="h-8 w-8 animate-pulse" style={{ color: "var(--primary)" }} />
+          <div
+            className="h-1 rounded-full mb-7 overflow-hidden"
+            style={{ background: "var(--border)" }}
+          >
+            <div
+              className="h-full rounded-full"
+              style={{
+                background: "var(--primary)",
+                width: "40%",
+                animation: "shimmer-bar 1.5s ease-in-out infinite",
+              }}
+            />
           </div>
-          <p className="text-[15px] font-semibold" style={{ color: "var(--foreground)" }}>
+          <p className="text-[15px] font-semibold mb-1" style={{ color: "var(--foreground)" }}>
             Claude is writing your scripts…
           </p>
-          <p className="text-[13px] mt-1.5" style={{ color: "var(--foreground-muted)" }}>
+          <p className="text-[13px]" style={{ color: "var(--foreground-muted)" }}>
             Generating 3 angles: pain-point, lifestyle, and social proof
           </p>
-          <div className="mt-5 flex justify-center gap-1.5">
-            {[0, 1, 2].map((i) => (
-              <div
-                key={i}
-                className="h-2 w-2 rounded-full animate-bounce"
-                style={{ background: "var(--primary)", animationDelay: `${i * 0.15}s` }}
-              />
+          <div className="mt-5 space-y-2">
+            {["Analysing product and persona", "Writing pain-point angle", "Writing lifestyle + social proof angles"].map((step, i) => (
+              <div key={i} className="flex items-center gap-2.5">
+                <div
+                  className="h-1.5 w-1.5 rounded-full flex-shrink-0"
+                  style={{ background: i === 0 ? "var(--primary)" : "var(--border)" }}
+                />
+                <p className="text-[12px]" style={{ color: i === 0 ? "var(--foreground)" : "var(--foreground-muted)", opacity: i === 0 ? 1 : 0.5 }}>
+                  {step}
+                </p>
+              </div>
             ))}
           </div>
         </div>

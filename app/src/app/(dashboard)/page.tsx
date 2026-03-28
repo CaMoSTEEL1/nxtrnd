@@ -120,9 +120,9 @@ export default function DashboardPage() {
                   </p>
                   <p
                     className="mt-3 text-2xl font-extrabold tabular-nums"
-                    style={{ color: done ? "var(--primary)" : "var(--foreground-muted)", opacity: done ? 1 : 0.4 }}
+                    style={{ color: done ? "var(--primary)" : "var(--foreground-muted)", opacity: done ? 1 : 0.3 }}
                   >
-                    {step.count}
+                    {done ? step.count : "—"}
                   </p>
                   <Link
                     href={step.href}
@@ -207,7 +207,7 @@ export default function DashboardPage() {
         <div className="flex items-center justify-between mb-4">
           <p className="label-section">Recent work</p>
           <Link href="/videos">
-            <button className="text-[11px] font-semibold transition-colors hover:opacity-70" style={{ color: "var(--primary)" }}>
+            <button className="text-[11px] font-semibold transition-colors hover:text-[var(--primary-hover)]" style={{ color: "var(--primary)" }}>
               View all
             </button>
           </Link>
@@ -225,7 +225,7 @@ export default function DashboardPage() {
               style={{
                 background: "var(--background-card)",
                 borderBottom: i < GHOST_ITEMS.length - 1 ? "1px solid var(--border)" : "none",
-                opacity: 0.25,
+                opacity: 0.38,
                 pointerEvents: "none",
               }}
             >
