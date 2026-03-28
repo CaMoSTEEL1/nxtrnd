@@ -1,12 +1,9 @@
-import Script from 'next/script';
-
-export default function LandingPage() {
-  return (
-    <>
-      <div dangerouslySetInnerHTML={{ __html: `
-
-
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Vyce Studio — AI-Powered Influencer Content at Scale</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet"/>
@@ -462,8 +459,8 @@ footer{
   .btn-primary,.btn-secondary{width:100%;justify-content:center}
 }
 </style>
-` }} />
-      <div dangerouslySetInnerHTML={{ __html: `
+</head>
+<body>
 
 <!-- ═══ NAV ═══════════════════════════════════════ -->
 <nav>
@@ -476,7 +473,7 @@ footer{
       <a href="#how-it-works">How it Works</a>
       <a href="#features">Features</a>
       <a href="#compare">Compare</a>
-      <a href="/videos/new" style="text-decoration:none;"><button class="btn-nav">Get Early Access</button></a>
+      <button class="btn-nav">Get Early Access</button>
     </div>
   </div>
 </nav>
@@ -501,14 +498,14 @@ footer{
     </p>
 
     <div class="hero-ctas animate-fade-up delay-3">
-      <a href="/videos/new" style="text-decoration:none;"><button class="btn-primary">
+      <button class="btn-primary">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
         Start Creating — Free Beta
-      </button></a>
-      <a href="/videos" style="text-decoration:none;"><button class="btn-secondary">
+      </button>
+      <button class="btn-secondary">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
         Watch Demo
-      </button></a>
+      </button>
     </div>
 
     <!-- Product Window Mockup -->
@@ -732,7 +729,7 @@ footer{
   <div class="container">
     <div class="section-eyebrow">Why Vyce Studio</div>
     <div class="section-title">Replace the <em>entire</em><br/>content pipeline</div>
-    <p class="section-desc">Traditional UGC costs \$500–\$2,000 per video and takes 2+ weeks. Vyce does it in minutes for pennies.</p>
+    <p class="section-desc">Traditional UGC costs $500–$2,000 per video and takes 2+ weeks. Vyce does it in minutes for pennies.</p>
 
     <div class="comparison-table">
       <div class="comparison-row header">
@@ -742,8 +739,8 @@ footer{
       </div>
       <div class="comparison-row">
         <div class="comparison-cell">Cost per Video</div>
-        <div class="comparison-cell">\$500 – \$2,000</div>
-        <div class="comparison-cell">~\$1.50</div>
+        <div class="comparison-cell">$500 – $2,000</div>
+        <div class="comparison-cell">~$1.50</div>
       </div>
       <div class="comparison-row">
         <div class="comparison-cell">Turnaround</div>
@@ -786,10 +783,10 @@ footer{
       Join the beta. Upload your first product and generate a video in under two minutes — completely free during early access.
     </p>
     <div class="hero-ctas">
-      <a href="/videos/new" style="text-decoration:none;"><button class="btn-primary" style="font-size:16px;padding:16px 40px">
+      <button class="btn-primary" style="font-size:16px;padding:16px 40px">
         Get Early Access
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-      </button></a>
+      </button>
     </div>
     <p style="margin-top:16px;font-size:13px;color:var(--text-muted)">No credit card required · Free during beta</p>
   </div>
@@ -813,7 +810,5 @@ footer{
   </div>
 </footer>
 
-` }} />
-    </>
-  );
-}
+</body>
+</html>
