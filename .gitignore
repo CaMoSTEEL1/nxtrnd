@@ -1,0 +1,14 @@
+# Claude Code local settings
+.claude/settings.local.json
+.claude/cache/
+.claude/sessions/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Next.js (also covered by app/.gitignore)
+app/.next/
+app/node_modules/
+app/.env*
+!app/.env.example
