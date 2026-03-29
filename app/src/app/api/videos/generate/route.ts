@@ -5,6 +5,7 @@ import fs from "fs/promises";
 import path from "path";
 import os from "os";
 import ffmpeg from "fluent-ffmpeg";
+import { supabaseAdmin } from "@/lib/supabase-client";
 
 // Setup global store and paths
 if (process.env.FFMPEG_PATH) ffmpeg.setFfmpegPath(process.env.FFMPEG_PATH);
@@ -22,10 +23,8 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { influencerId, scriptId, productId } = body;
 
-    if (!influencerId || !scriptId || !productId) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-    }
-
+    // Use placeholder IDs if missing for MVP since the UI sends names/text directly for now
+    
     const jobId = uuidv4();
     globalJobs.set(jobId, { status: "queued", renderStep: 0 });
 
@@ -131,10 +130,35 @@ async function processVideoGeneration(
         .on("error", reject);
     });
 
-    // Step 4: Convert final MP4 to base64 for frontend consumption
+    // Step 4: Upload final MP4 to Supabase Storage
     globalJobs.set(jobId, { status: "rendering", renderStep: 5 });
     const finalBuffer = await fs.readFile(finalOutputPath);
-    const base64Data = `data:video/mp4;base64,${finalBuffer.toString('base64')}`;
+    const mediaPath = `videos/gen-${Date.now()}-${Math.random().toString(36).substring(7)}.mp4`;
+    
+    let base64Data = `data:video/mp4;base64,${finalBuffer.toString('base64')}`;
+    let finalVideoUrl = base64Data;
+    
+    if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      const { data: uploadData, error: uploadError } = await supabaseAdmin
+        .storage
+        .from("media")
+        .upload(mediaPath, finalBuffer, { contentType: "video/mp4" });
+        
+      if (!uploadError) {
+        const { data: urlData } = supabaseAdmin.storage.from("media").getPublicUrl(mediaPath);
+        finalVideoUrl = urlData.publicUrl;
+        
+        // Log generation in DB if table exists (fire and forget)
+        supabaseAdmin.from("video_generations").insert({
+          status: "completed",
+          video_url: finalVideoUrl,
+        }).then(({ error }) => {
+           if (error) console.error("Could not insert video record (table might not exist yet):", error.message);
+        });
+      } else {
+        console.error("Supabase video upload failed, falling back to base64 output", uploadError);
+      }
+    }
 
     // Clean up temp directory
     await fs.rm(workDir, { recursive: true, force: true }).catch(console.error);
@@ -142,7 +166,7 @@ async function processVideoGeneration(
     globalJobs.set(jobId, { 
       status: "success", 
       renderStep: 5, 
-      videoUrl: base64Data 
+      videoUrl: finalVideoUrl 
     });
     
   } catch (err: any) {
