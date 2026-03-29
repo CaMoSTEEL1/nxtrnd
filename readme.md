@@ -1,6 +1,4 @@
-Here is a comprehensive project write-up designed for your Devspot submission, detailing your ideation and the highly technical content creation pipeline based on your architecture document:
-
-Project Write-Up: Autonomous AI Influencer Studio for Sports Brands
+Autonomous AI Influencer Studio for Sports Brands
 Ideation and Purpose
 Our project addresses a massive bottleneck in the creator economy: sports brands (from enterprise giants like Nike and Lululemon to emerging athleisure startups) need authentic-looking User-Generated Content (UGC) at scale, but traditional influencer logistics are slow and expensive. We ideated a B2B SaaS platform specifically for agency operators that acts as an agentic system. Instead of just being a video editor, our system completely automates ideation, scripting, avatar generation, voiceover, and video composition to produce short-form vertical videos (TikToks and Reels, max 30 seconds).
 

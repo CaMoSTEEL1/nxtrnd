@@ -1,8 +1,8 @@
 import OpenAI from "openai";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+function getOpenAI() {
+  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+}
 
 /**
  * Generate product showcase image using DALL-E 3
@@ -20,7 +20,7 @@ export async function generateProductImage(
     Style: Bright, clean, modern lifestyle photography. Product should be prominently featured and well-lit. 
     Professional ecommerce quality.`;
 
-    const response = await openai.images.generate({
+    const response = await getOpenAI().images.generate({
       model: "dall-e-3",
       prompt,
       n: 1,
@@ -46,25 +46,25 @@ export async function generateProductImage(
  */
 export async function generateInfluencerImage(
   name: string,
-  archetype: string
+  archetype: string,
+  brand?: string,
+  targetDemographic?: string
 ): Promise<string> {
   try {
     const archetypeDesc: { [key: string]: string } = {
-      fit_girl: "athletic female, yoga/fitness enthusiast, confident, diverse ethnicity, gym wear",
-      gym_bro: "athletic male, muscular build, gym enthusiast, confident, casual sportswear",
-      runner: "lean athletic person, running enthusiast, energetic, athletic wear",
-      lifestyle: "fashionable person, casual lifestyle, confident, trendy casual clothing",
+      fit_girl: "athletic woman in her mid-20s, lean and toned build, confident natural expression, wearing a minimalist sports bra and high-waist leggings, diverse ethnicity",
+      gym_bro: "athletic man in his late 20s, muscular build, confident and approachable expression, wearing a fitted gym shirt, diverse ethnicity",
+      runner: "lean athletic person in their mid-20s, runner's physique, energetic and determined expression, wearing running gear with compression tights",
+      lifestyle: "stylish person in their mid-20s, confident and approachable, wearing trendy athleisure or casual wear, diverse ethnicity",
     };
 
     const desc = archetypeDesc[archetype] || archetypeDesc.lifestyle;
+    const brandContext = brand ? ` representing ${brand}` : "";
+    const demographicContext = targetDemographic ? ` appealing to ${targetDemographic}` : "";
 
-    const prompt = `Create a professional portrait of a content creator named "${name}". 
-    Type: ${desc}
-    Style: Modern, professional headshot/portrait for social media. Bright, well-lit, high quality.
-    Background: Minimalist, clean white or neutral. Focus on authentic, relatable appearance.
-    Resolution: Professional Instagram/TikTok quality.`;
+    const prompt = `Professional social media influencer portrait${brandContext}${demographicContext}. ${desc}. Studio photography: soft box lighting, clean white or light gray background, sharp facial details, magazine-quality composition. Authentic, aspirational Instagram/TikTok influencer aesthetic. Photorealistic, 4K quality. NOT illustrated or AI-looking.`;
 
-    const response = await openai.images.generate({
+    const response = await getOpenAI().images.generate({
       model: "dall-e-3",
       prompt,
       n: 1,

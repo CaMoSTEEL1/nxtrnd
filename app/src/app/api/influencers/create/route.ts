@@ -1,10 +1,36 @@
 import { NextRequest, NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
 import { generateInfluencerImage } from "@/lib/image-generator";
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+const ARCHETYPE_PERSONAS: Record<string, { names: string[]; traits: string[]; bioTemplate: string }> = {
+  fit_girl: {
+    names: ["Maya Torres", "Zoe Kim", "Ava Patel", "Leila Nguyen", "Sofia Reyes"],
+    traits: ["Motivating", "Authentic", "Health-conscious", "Empowering"],
+    bioTemplate: `Fitness creator helping women build strength and confidence. Partnering with ${"{brand}"} to bring you the best in athletic performance.`,
+  },
+  gym_bro: {
+    names: ["Marcus Reid", "Jake Chen", "Tyler Brooks", "Damon West", "Nate Silva"],
+    traits: ["Driven", "Disciplined", "High-energy", "Results-focused"],
+    bioTemplate: `Performance athlete obsessed with gains. ${"{brand}"} fuels my grind — let it fuel yours.`,
+  },
+  runner: {
+    names: ["Ellie Park", "Jordan Hayes", "Sam Okafor", "Riley Moss", "Casey Lin"],
+    traits: ["Endurance-focused", "Goal-oriented", "Consistent", "Community-driven"],
+    bioTemplate: `Distance runner chasing PRs and pushing limits with ${"{brand}"} every mile.`,
+  },
+  lifestyle: {
+    names: ["Chloe Bennett", "Alex Morgan", "Jamie Wu", "Drew Santos", "Sage Taylor"],
+    traits: ["Trendy", "Relatable", "Balanced", "Aspirational"],
+    bioTemplate: `Living actively and authentically. ${"{brand}"} fits the way I move through life.`,
+  },
+};
+
+function buildPersona(archetype: string, brand: string) {
+  const config = ARCHETYPE_PERSONAS[archetype] ?? ARCHETYPE_PERSONAS.lifestyle;
+  const name = config.names[Math.floor(Math.random() * config.names.length)];
+  const handle = `@${name.split(" ")[0].toLowerCase()}${name.split(" ")[1].toLowerCase()}`;
+  const bio = config.bioTemplate.replace("{brand}", brand);
+  return { name, handle, bio, traits: config.traits };
+}
 
 // POST /api/influencers/create
 // Body: { archetype: string, brand: string, targetDemographic: string }
@@ -18,41 +44,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    // Step 1: Generate persona name and description using Claude
-    const personaResponse = await anthropic.messages.create({
-      model: "claude-opus-4",
-      max_tokens: 500,
-      messages: [
-        {
-          role: "user",
-          content: `Generate a realistic AI influencer persona for a ${archetype} archetype who would promote ${brand} to ${targetDemographic} audiences.
-
-Provide:
-1. First and last name
-2. Instagram/TikTok handle (format: @username)
-3. Bio (1-2 sentences)
-4. Key personality traits (3-4 traits)
-
-Format as JSON:
-{
-  "name": "Full Name",
-  "handle": "@handle",
-  "bio": "Bio text",
-  "traits": ["trait1", "trait2", "trait3"]
-}`,
-        },
-      ],
-    });
-
-    const personaContent = personaResponse.content[0];
-    if (personaContent.type !== "text") {
-      throw new Error("Unexpected response type from Claude");
-    }
-
-    const persona = JSON.parse(personaContent.text);
+    // Step 1: Build persona metadata directly from archetype + brand
+    const persona = buildPersona(archetype, brand);
 
     // Step 2: Generate influencer reference image
-    const imageUrl = await generateInfluencerImage(persona.name, archetype);
+    const imageUrl = await generateInfluencerImage(persona.name, archetype, brand, targetDemographic);
 
     // Step 3: Create influencer object (in production, save to Supabase)
     const influencer = {

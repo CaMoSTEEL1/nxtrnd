@@ -1,30 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, CheckCircle2, Sparkles, Video, Download, Share2 } from "lucide-react";
 import Link from "next/link";
-
-// ── Mock data ─────────────────────────────────────────────────────────────────
-const MOCK_INFLUENCERS = [
-  { id: "ava", name: "Ava Chen (@ava.moves)" },
-  { id: "marcus", name: "Marcus Reid (@marcuslifts)" },
-  { id: "priya", name: "Priya Nair (@runwithpriya)" },
-  { id: "jordan", name: "Jordan Ellis (@jordo.daily)" },
-];
-
-const MOCK_SCRIPTS = [
-  { id: "pain", name: "Pain-point — \"If your leggings are distracting you…\"" },
-  { id: "lifestyle", name: "Lifestyle — \"This is what 6am looks like…\"" },
-  { id: "social", name: "Social proof — \"I've tried 11 leggings…\"" },
-];
-
-const MOCK_PRODUCTS = [
-  { id: "align", name: "Lululemon Align Pant" },
-  { id: "define", name: "Lululemon Define Jacket" },
-  { id: "swiftly", name: "Lululemon Swiftly Tech Racerback" },
-  { id: "abc", name: "Lululemon ABC Pant" },
-];
 
 const CAPTION_STYLES = ["Bold", "Minimal", "None"] as const;
 type CaptionStyle = typeof CAPTION_STYLES[number];
@@ -32,12 +11,10 @@ type Status = "idle" | "rendering" | "success";
 
 // ── Render progress steps ─────────────────────────────────────────────────────
 const RENDER_STEPS = [
-  "Generating voiceover with ElevenLabs…",
-  "Generating influencer video with AI…",
-  "Compositing product shots…",
-  "Syncing audio with visuals…",
-  "Burning captions…",
-  "Finalising 30-second reel…",
+  "Queuing generation job…",
+  "Generating AI influencer video…",
+  "Downloading video…",
+  "Uploading to storage…",
 ];
 
 export default function NewVideoPage() {
@@ -50,10 +27,19 @@ export default function NewVideoPage() {
   const [error, setError] = useState("");
   const [videoUrl, setVideoUrl] = useState<string>("");
   const [jobId, setJobId] = useState("");
+  const [influencers, setInfluencers] = useState<{ id: string; name: string }[]>([]);
+  const [products, setProducts] = useState<{ id: string; name: string }[]>([]);
+  const [scripts, setScripts] = useState<{ id: string; name: string }[]>([]);
 
-  const hasInfluencers = MOCK_INFLUENCERS.length > 0;
-  const hasScripts = MOCK_SCRIPTS.length > 0;
-  const hasProducts = MOCK_PRODUCTS.length > 0;
+  useEffect(() => {
+    fetch("/api/influencers").then(r => r.json()).then(d => setInfluencers(d.influencers || []));
+    fetch("/api/products").then(r => r.json()).then(d => setProducts(d.products || []));
+    fetch("/api/scripts").then(r => r.json()).then(d => setScripts(d.scripts || [])).catch(() => {});
+  }, []);
+
+  const hasInfluencers = influencers.length > 0;
+  const hasScripts = scripts.length > 0;
+  const hasProducts = products.length > 0;
 
   async function pollJobStatus(id: string) {
     const maxAttempts = 60; // Poll for up to 5 minutes (with backoff)
@@ -146,9 +132,9 @@ export default function NewVideoPage() {
     }
   }
 
-  const chosenInfluencer = MOCK_INFLUENCERS.find((x) => x.id === vInfluencer);
-  const chosenScript = MOCK_SCRIPTS.find((x) => x.id === vScript);
-  const chosenProduct = MOCK_PRODUCTS.find((x) => x.id === vProduct);
+  const chosenInfluencer = influencers.find((x) => x.id === vInfluencer);
+  const chosenScript = scripts.find((x) => x.id === vScript);
+  const chosenProduct = products.find((x) => x.id === vProduct);
 
   // ── Success state ──────────────────────────────────────────────────────────
   if (status === "success") {
@@ -414,7 +400,7 @@ export default function NewVideoPage() {
               style={{ background: "var(--background-card)", borderColor: "var(--border)", color: "var(--foreground)" }}
             >
               <option value="">Select influencer…</option>
-              {MOCK_INFLUENCERS.map((inf) => (
+              {influencers.map((inf) => (
                 <option key={inf.id} value={inf.id}>{inf.name}</option>
               ))}
             </select>
@@ -445,7 +431,7 @@ export default function NewVideoPage() {
               style={{ background: "var(--background-card)", borderColor: "var(--border)", color: "var(--foreground)" }}
             >
               <option value="">Select script…</option>
-              {MOCK_SCRIPTS.map((s) => (
+              {scripts.map((s) => (
                 <option key={s.id} value={s.id}>{s.name}</option>
               ))}
             </select>
@@ -476,7 +462,7 @@ export default function NewVideoPage() {
               style={{ background: "var(--background-card)", borderColor: "var(--border)", color: "var(--foreground)" }}
             >
               <option value="">Select product…</option>
-              {MOCK_PRODUCTS.map((prod) => (
+              {products.map((prod) => (
                 <option key={prod.id} value={prod.id}>{prod.name}</option>
               ))}
             </select>

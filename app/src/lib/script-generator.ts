@@ -1,8 +1,8 @@
 import Anthropic from "@anthropic-ai/sdk";
 
-const client = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+function getClient() {
+  return new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+}
 
 export interface GeneratedScript {
   angle: string;
@@ -51,7 +51,7 @@ Format your response as a JSON array with 3 objects, no markdown backticks:
   ...
 ]`;
 
-    const message = await client.messages.create({
+    const message = await getClient().messages.create({
       model: "claude-opus-4",
       max_tokens: 2000,
       messages: [
