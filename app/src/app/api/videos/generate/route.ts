@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+export const maxDuration = 60; // Max allowed by Vercel Hobby/Pro
 import { v4 as uuidv4 } from "uuid";
 import Replicate from "replicate";
 import fs from "fs/promises";
@@ -6,9 +7,14 @@ import path from "path";
 import os from "os";
 import ffmpeg from "fluent-ffmpeg";
 import { supabaseAdmin } from "@/lib/supabase-client";
+import ffmpegInstaller from "@ffmpeg-installer/ffmpeg";
 
 // Setup global store and paths
-if (process.env.FFMPEG_PATH) ffmpeg.setFfmpegPath(process.env.FFMPEG_PATH);
+if (process.env.FFMPEG_PATH) {
+  ffmpeg.setFfmpegPath(process.env.FFMPEG_PATH);
+} else {
+  ffmpeg.setFfmpegPath(ffmpegInstaller.path);
+}
 const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN });
 
 // Use a global map to store generation jobs
