@@ -55,11 +55,35 @@ export default function NewInfluencerPage() {
     if (!tone) { setError("Please select a brand tone."); return; }
 
     setStatus("loading");
-    setTimeout(() => {
-      const result = PERSONA_RESULTS[demographic] ?? DEFAULT_PERSONA;
-      setPersona(result);
+    
+    // 1. Generate description with Claude or construct a detailed prompt
+    const personaDescription = `A ${demographic} influencer for ${brand} (${sport}). Tone: ${tone}. Detailed, photorealistic, professional headshot.`;
+
+    // 2. Generate actual image using DALL-E 3 backend
+    fetch("/api/influencers/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ personaDescription })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (!data.imageUrl) throw new Error(data.error || "No image returned");
+      
+      const generatedPersona = {
+        name: `AI ${demographic} Persona`,
+        handle: `@${brand.toLowerCase().replace(/\s+/g, "")}_${sport}`,
+        bio: `Generated AI influencer for ${brand} targeting ${demographic} with a ${tone} tone.`,
+        imageHint: personaDescription,
+        imageUrl: data.imageUrl
+      };
+      
+      setPersona(generatedPersona as any);
       setStatus("success");
-    }, 2000);
+    })
+    .catch(err => {
+      setError(err.message);
+      setStatus("idle");
+    });
   }
 
   // ── Success state ──────────────────────────────────────────────────────────
@@ -79,12 +103,16 @@ export default function NewInfluencerPage() {
           className="rounded-xl p-6 mb-6"
           style={{ background: "var(--background-card)", border: "1.5px solid var(--primary)" }}
         >
-          {/* Avatar placeholder */}
+          {/* Avatar / Portrait */}
           <div
-            className="w-16 h-16 rounded-full mb-4 flex items-center justify-center text-2xl font-bold"
-            style={{ background: "var(--primary-subtle)", color: "var(--primary)" }}
+            className="w-16 h-16 rounded-full mb-4 flex items-center justify-center text-2xl font-bold overflow-hidden bg-cover bg-center"
+            style={{ 
+              backgroundImage: (persona as any).imageUrl ? `url(${(persona as any).imageUrl})` : "none",
+              backgroundColor: "var(--primary-subtle)", 
+              color: "var(--primary)" 
+            }}
           >
-            {persona.name.charAt(0)}
+            {!(persona as any).imageUrl && persona.name.charAt(0)}
           </div>
 
           <p className="text-xl font-bold" style={{ color: "var(--foreground)" }}>{persona.name}</p>

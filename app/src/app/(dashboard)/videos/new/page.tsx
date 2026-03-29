@@ -32,11 +32,11 @@ type Status = "idle" | "rendering" | "success";
 
 // ── Render progress steps ─────────────────────────────────────────────────────
 const RENDER_STEPS = [
-  "Generating persona footage with DALL-E 3…",
+  "Generating voiceover with ElevenLabs…",
+  "Generating influencer video with AI…",
   "Compositing product shots…",
-  "Syncing voiceover with scene timing…",
+  "Syncing audio with visuals…",
   "Burning captions…",
-  "Encoding H.264 at 9:16…",
   "Finalising 30-second reel…",
 ];
 
@@ -48,10 +48,53 @@ export default function NewVideoPage() {
   const [status, setStatus] = useState<Status>("idle");
   const [renderStep, setRenderStep] = useState(0);
   const [error, setError] = useState("");
+  const [videoUrl, setVideoUrl] = useState<string>("");
+  const [jobId, setJobId] = useState("");
 
   const hasInfluencers = MOCK_INFLUENCERS.length > 0;
   const hasScripts = MOCK_SCRIPTS.length > 0;
   const hasProducts = MOCK_PRODUCTS.length > 0;
+
+  async function pollJobStatus(id: string) {
+    const maxAttempts = 60; // Poll for up to 5 minutes (with backoff)
+    let attempt = 0;
+
+    while (attempt < maxAttempts) {
+      try {
+        const res = await fetch(`/api/videos/${id}/status`);
+        if (!res.ok) throw new Error("Failed to fetch job status");
+
+        const job = await res.json();
+        
+        // Update progress based on job status
+        if (job.voiceoverUrl) setRenderStep(2);
+        if (job.influencerVideoUrl) setRenderStep(4);
+        if (job.finalVideoUrl) setRenderStep(5);
+
+        if (job.status === "completed") {
+          setVideoUrl(job.finalVideoUrl || "");
+          setStatus("success");
+          return;
+        } else if (job.status === "failed") {
+          setError(job.error || "Job failed");
+          setStatus("idle");
+          return;
+        }
+
+        // Exponential backoff: 2s, 3s, 4s, etc.
+        const backoffMs = Math.min(2000 + attempt * 1000, 10000);
+        await new Promise((resolve) => setTimeout(resolve, backoffMs));
+        attempt++;
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Polling error");
+        setStatus("idle");
+        return;
+      }
+    }
+
+    setError("Job timeout after 5 minutes");
+    setStatus("idle");
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -65,7 +108,6 @@ export default function NewVideoPage() {
     setRenderStep(0);
 
     try {
-      // 1. Production-ready API integration (calls the backend stub)
       const res = await fetch("/api/videos/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -73,15 +115,31 @@ export default function NewVideoPage() {
       });
 
       if (!res.ok) throw new Error("Failed to start generation job");
-
-      // 2. Simulate polling progress for the UI
-      for (let i = 0; i < RENDER_STEPS.length; i++) {
-        setRenderStep(i);
-        // Simulate arbitrary processing time for each step
-        await new Promise((resolve) => setTimeout(resolve, 800 + Math.random() * 500));
+      const { jobId } = await res.json();
+      
+      // Poll progress from backend
+      let completed = false;
+      while (!completed) {
+        await new Promise((r) => setTimeout(r, 2000));
+        const stRes = await fetch(`/api/jobs/${jobId}/status`);
+        if (!stRes.ok) continue;
+        const state = await stRes.json();
+        
+        if (state.status === "failed") {
+          throw new Error(state.error || "Video generation failed");
+        }
+        
+        if (state.renderStep !== undefined) {
+           setRenderStep(state.renderStep);
+        }
+        
+        if (state.status === "success") {
+          setVideoUrl(state.videoUrl);
+          completed = true;
+          setStatus("success");
+        }
       }
 
-      setStatus("success");
     } catch (err) {
       setError(err instanceof Error ? err.message : "An unknown error occurred");
       setStatus("idle");
@@ -193,7 +251,17 @@ export default function NewVideoPage() {
 
         {/* Action buttons */}
         <div className="flex items-center gap-3 mb-6">
-          <Button size="lg">
+          <Button 
+            size="lg"
+            onClick={() => {
+              const link = document.createElement("a");
+              link.href = videoUrl || `data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yavZmaXJlYXJhAA==`;
+              link.download = `${chosenProduct?.name.replace(/\s+/g, "-")}-${chosenScript?.name.split(" — ")[0]}.mp4`;
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+            }}
+          >
             <Download className="h-4 w-4" />
             Download MP4
           </Button>
@@ -221,7 +289,7 @@ export default function NewVideoPage() {
               </Button>
             </Link>
             <button
-              onClick={() => { setStatus("idle"); setVInfluencer(""); setVScript(""); setVProduct(""); }}
+              onClick={() => { setStatus("idle"); setVInfluencer(""); setVScript(""); setVProduct(""); setVideoUrl(""); setJobId(""); }}
               className="text-[12px] transition-colors hover:text-[var(--foreground)]"
               style={{ color: "var(--foreground-muted)" }}
             >

@@ -58,6 +58,7 @@ export default function NewScriptPage() {
   const [product, setProduct] = useState("");
   const [extraContext, setExtraContext] = useState("");
   const [status, setStatus] = useState<Status>("idle");
+  const [scripts, setScripts] = useState<any[]>(SCRIPTS);
   const [selectedScript, setSelectedScript] = useState<string>("pain");
   const [expandedScript, setExpandedScript] = useState<string | null>("pain");
   const [error, setError] = useState("");
@@ -73,14 +74,35 @@ export default function NewScriptPage() {
     if (!product) { setError("Please select a product."); return; }
 
     setStatus("loading");
-    setTimeout(() => {
+    
+    fetch("/api/scripts/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        productDescription: chosenProduct?.name || product,
+        brand: "Lululemon",
+        sport: "Yoga/Fitness",
+        demographic: "Gen Z and Millennials",
+        tone: "Aspirational and functional"
+      })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.scripts && data.scripts.length > 0) {
+        setScripts(data.scripts);
+        setSelectedScript(data.scripts[0].id);
+      }
       setStatus("success");
-    }, 2000);
+    })
+    .catch(err => {
+      setError(err.message);
+      setStatus("idle");
+    });
   }
 
   const chosenInfluencer = MOCK_INFLUENCERS.find((i) => i.id === influencer);
   const chosenProduct = MOCK_PRODUCTS.find((p) => p.id === product);
-  const chosen = SCRIPTS.find((s) => s.id === selectedScript) ?? SCRIPTS[0];
+  const chosen = scripts.find((s) => s.id === selectedScript) ?? scripts[0];
 
   // ── Success state ──────────────────────────────────────────────────────────
   if (status === "success") {
@@ -99,7 +121,7 @@ export default function NewScriptPage() {
 
         {/* Script cards */}
         <div className="space-y-3 mb-8">
-          {SCRIPTS.map((script) => {
+          {scripts.map((script) => {
             const isSelected = selectedScript === script.id;
             const isExpanded = expandedScript === script.id;
             return (

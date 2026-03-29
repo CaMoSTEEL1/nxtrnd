@@ -1,18 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// GET /api/videos/[id]/status
-// Returns: { status: "queued" | "processing" | "complete" | "error", videoUrl?: string }
+const globalJobs = (globalThis as any).videoJobs || new Map();
+if (!(globalThis as any).videoJobs) {
+  (globalThis as any).videoJobs = globalJobs;
+}
+
 export async function GET(
-  _req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> } // In Next 15, dynamic route params is a Promise
 ) {
   const { id } = await params;
-
+  
   if (!id) {
-    return NextResponse.json({ error: "Missing video id" }, { status: 400 });
+    return NextResponse.json({ error: "Missing job ID" }, { status: 400 });
   }
 
-  // TODO: fetch from video_generations table in Supabase
+  const job = globalJobs.get(id);
 
-  return NextResponse.json({ status: "queued", videoUrl: null }, { status: 200 });
+  if (!job) {
+    return NextResponse.json({ error: "Job not found" }, { status: 404 });
+  }
+
+  return NextResponse.json(job);
 }
